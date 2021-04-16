@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.widget.RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity"
+    android:background="@drawable/background">
+
+    <TextView
+        android:id="@+id/home_app_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/app_name"
+        android:fontFamily="@font/amaranth"
+        android:textSize="45dp"
+        android:textColor="#FFF"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="50dp"/>
+
+    <ImageView
+        android:id="@+id/sign"
+        android:src="@drawable/peace_sign"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_centerInParent="true"
+        android:clickable="true"/>
+    <TextView
+        android:id="@+id/sign_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Recognize Signs"
+        android:layout_below="@id/sign"
+        android:layout_centerHorizontal="true"
+        android:textColor="#FFF"
+        android:fontFamily="@font/amaranth"
+        android:textSize="18dp"
+        android:layout_marginTop="3dp"/>
+
+    <ImageView
+        android:id="@+id/objects"
+        android:src="@drawable/magnifying"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_centerInParent="true"
+        android:layout_above="@id/object_text"
+        android:clickable="true"/>
+    <TextView
+        android:id="@+id/object_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Recognize Objects"
+        android:layout_above="@id/sign"
+        android:layout_centerHorizontal="true"
+        android:textColor="#FFF"
+        android:fontFamily="@font/amaranth"
+        android:textSize="18dp"
+        android:layout_marginTop="3dp"
+        android:layout_marginBottom="25dp"/>
+
+    <ImageView
+        android:id="@+id/speech"
+        android:src="@drawable/text"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_centerInParent="true"
+        android:layout_below="@+id/sign_text"
+        android:layout_marginTop="25dp"
+        android:clickable="true"/>
+    <TextView
+        android:id="@+id/speech_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Recognize Speech"
+        android:layout_below="@id/speech"
+        android:layout_centerHorizontal="true"
+        android:textColor="#FFF"
+        android:fontFamily="@font/amaranth"
+        android:textSize="18dp"
+        android:layout_marginTop="3dp"/>
+
+</android.widget.RelativeLayout>
