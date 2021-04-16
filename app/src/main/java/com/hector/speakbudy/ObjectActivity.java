@@ -45,8 +45,6 @@ public class ObjectActivity extends AppCompatActivity {
     private ObjectDetector objectDetector;
     private ListenableFuture<ProcessCameraProvider> cameraProviderListenableFuture;
 
-    private LocalModel localModel;
-    private CustomObjectDetectorOptions customObjectDetectorOptions;
     private Camera camera;
 
     PreviewView previewView;
@@ -78,11 +76,11 @@ public class ObjectActivity extends AppCompatActivity {
             }
         }, ContextCompat.getMainExecutor(this));
 
-        localModel = new LocalModel.Builder()
+        LocalModel localModel = new LocalModel.Builder()
                 .setAssetFilePath("object_detection.tflite")
                 .build();
 
-        customObjectDetectorOptions = new CustomObjectDetectorOptions.Builder(localModel)
+        CustomObjectDetectorOptions customObjectDetectorOptions = new CustomObjectDetectorOptions.Builder(localModel)
                 .setDetectorMode(CustomObjectDetectorOptions.STREAM_MODE)
                 .enableMultipleObjects()
                 .enableClassification()
