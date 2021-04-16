@@ -45,6 +45,8 @@ public class ObjectActivity extends AppCompatActivity {
     private ObjectDetector objectDetector;
     private ListenableFuture<ProcessCameraProvider> cameraProviderListenableFuture;
 
+    private LocalModel localModel;
+    private CustomObjectDetectorOptions customObjectDetectorOptions;
     private Camera camera;
 
     PreviewView previewView;
@@ -76,11 +78,11 @@ public class ObjectActivity extends AppCompatActivity {
             }
         }, ContextCompat.getMainExecutor(this));
 
-        LocalModel localModel = new LocalModel.Builder()
+        localModel = new LocalModel.Builder()
                 .setAssetFilePath("object_detection.tflite")
                 .build();
 
-        CustomObjectDetectorOptions customObjectDetectorOptions = new CustomObjectDetectorOptions.Builder(localModel)
+        customObjectDetectorOptions = new CustomObjectDetectorOptions.Builder(localModel)
                 .setDetectorMode(CustomObjectDetectorOptions.STREAM_MODE)
                 .enableMultipleObjects()
                 .enableClassification()
@@ -223,8 +225,8 @@ public class ObjectActivity extends AppCompatActivity {
         float scale = Math.max(scaleY, scaleX);
         Size scaledSize = new Size((int) Math.ceil(image.getWidth() * scale), (int) Math.ceil(image.getHeight() * scale));
 
-        float offsetX = previewView.getWidth() - scaledSize.getWidth() / 2;
-        float offsetY = previewView.getHeight() - scaledSize.getHeight() / 2;
+        float offsetX = (previewView.getWidth() - scaledSize.getWidth()) / 2;
+        float offsetY = (previewView.getHeight() - scaledSize.getHeight()) / 2;
 
         rect.left = (int) (rect.left * scale + offsetX);
         rect.top = (int) (rect.top * scale + offsetY);
