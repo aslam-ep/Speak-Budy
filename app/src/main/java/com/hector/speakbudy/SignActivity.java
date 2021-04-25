@@ -29,9 +29,19 @@ import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.hector.speakbudy.API.RetrofitAPI;
+import com.hector.speakbudy.API.RetrofitClient;
+import com.hector.speakbudy.DataModels.ResponseDataModel;
 
 import java.io.File;
 import java.util.concurrent.ExecutionException;
+
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 @SuppressLint("RestrictedApi")
 public class SignActivity extends AppCompatActivity implements LifecycleOwner {
@@ -40,7 +50,7 @@ public class SignActivity extends AppCompatActivity implements LifecycleOwner {
     PreviewView previewView;
     FloatingActionButton videoRecordButton;
     LinearLayout progressBar;
-    TextView loadingText;
+    TextView loadingText, signResult;
 
     private ListenableFuture<ProcessCameraProvider> cameraProviderListenableFuture;
     Camera camera;
@@ -67,6 +77,7 @@ public class SignActivity extends AppCompatActivity implements LifecycleOwner {
         videoRecordButton = findViewById(R.id.recordButton);
         progressBar = findViewById(R.id.sign_progress);
         loadingText = findViewById(R.id.loadingText);
+        signResult = findViewById(R.id.signResult);
 
         file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), "Video.mp4");
 
@@ -120,6 +131,7 @@ public class SignActivity extends AppCompatActivity implements LifecycleOwner {
             public void onClick(View v) {
 
                 if (checkFilePermission()) {
+                    loadingText.setText("Capturing...");
                     videoRecordButton.setVisibility(View.INVISIBLE);
                     progressBar.setVisibility(View.VISIBLE);
 
@@ -127,9 +139,8 @@ public class SignActivity extends AppCompatActivity implements LifecycleOwner {
                     videoCapture.startRecording(outputFileOptions, ContextCompat.getMainExecutor(getApplicationContext()), new VideoCapture.OnVideoSavedCallback() {
                         @Override
                         public void onVideoSaved(@NonNull VideoCapture.OutputFileResults outputFileResults) {
-                            videoRecordButton.setVisibility(View.VISIBLE);
-                            progressBar.setVisibility(View.INVISIBLE);
-
+                            loadingText.setText("Processing...");
+                            runPredictionOnVideo(file);
                         }
 
                         @Override
@@ -149,6 +160,38 @@ public class SignActivity extends AppCompatActivity implements LifecycleOwner {
                         }
                     }, 3000);
                 }
+            }
+        });
+    }
+
+    void runPredictionOnVideo(File file){
+
+        RequestBody requestBody = RequestBody.create(
+                MediaType.parse("video/*"),
+                file
+        );
+
+        MultipartBody.Part part = MultipartBody.Part.createFormData("video", file.getName(), requestBody);
+
+        RequestBody someData = RequestBody.create(MediaType.parse("text/plain"), "some");
+
+        RetrofitAPI retrofitAPI = RetrofitClient.getInstance().create(RetrofitAPI.class);
+
+        Call<ResponseDataModel> call = retrofitAPI.uploadVideo(part, someData);
+
+        call.enqueue(new Callback<ResponseDataModel>() {
+            @Override
+            public void onResponse(Call<ResponseDataModel> call, Response<ResponseDataModel> response) {
+                signResult.setText(signResult.getText().toString() + " " + response.body().result);
+                videoRecordButton.setVisibility(View.VISIBLE);
+                progressBar.setVisibility(View.INVISIBLE);
+            }
+
+            @Override
+            public void onFailure(Call<ResponseDataModel> call, Throwable t) {
+                Toast.makeText(getApplicationContext(), "Check Your Connection!", Toast.LENGTH_SHORT).show();
+                videoRecordButton.setVisibility(View.VISIBLE);
+                progressBar.setVisibility(View.INVISIBLE);
             }
         });
     }

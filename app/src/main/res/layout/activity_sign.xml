@@ -62,10 +62,10 @@
         android:clickable="true"
         android:layout_alignParentEnd="true"/>
     <TextView
-        android:id="@+id/objectsResult2"
+        android:id="@+id/signResult"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hi there"
+        android:text=""
         android:textSize="20dp"
         android:fontFamily="@font/amaranth"
         android:layout_margin="35dp"
