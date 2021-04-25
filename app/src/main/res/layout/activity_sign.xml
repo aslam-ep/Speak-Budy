@@ -5,10 +5,38 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".SignActivity">
-    <FrameLayout
-        android:id="@+id/camera_preview2"
+
+    <androidx.camera.view.PreviewView
+        android:id="@+id/previewView2"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
+
+
+    <LinearLayout
+        android:id="@+id/sign_progress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="invisible">
+        <com.github.ybq.android.spinkit.SpinKitView
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            style="@style/SpinKitView.Wave"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:SpinKit_Color="@color/colorPrimary" />
+        <TextView
+            android:id="@+id/loadingText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Capturing..."
+            android:textColor="#FFF"
+            android:layout_marginTop="10dp"
+            android:textSize="16dp"
+            android:fontFamily="@font/amaranth"/>
+    </LinearLayout>
+
     <ImageView
         android:id="@+id/objectBackButton2"
         android:src="@drawable/ic_baseline_arrow_back_24"
@@ -41,7 +69,7 @@
         android:textSize="20dp"
         android:fontFamily="@font/amaranth"
         android:layout_margin="35dp"
-        android:textColor="#B2FFFFFF"
+        android:textColor="#FFF"
         android:layout_alignParentBottom="true" />
     <ImageView
         android:id="@+id/soundButton2"
@@ -53,4 +81,13 @@
         android:clickable="true"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"/>
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/recordButton"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="100dp"
+        android:src="@drawable/ic_baseline_videocam_24"
+        android:backgroundTint="@color/design_default_color_on_primary"/>
 </android.widget.RelativeLayout>

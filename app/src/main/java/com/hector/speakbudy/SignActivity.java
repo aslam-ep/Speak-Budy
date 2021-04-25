@@ -1,26 +1,56 @@
 package com.hector.speakbudy;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.camera.core.Camera;
+import androidx.camera.core.CameraSelector;
+import androidx.camera.core.Preview;
+import androidx.camera.core.VideoCapture;
+import androidx.camera.lifecycle.ProcessCameraProvider;
+import androidx.camera.view.PreviewView;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.lifecycle.LifecycleOwner;
 
-import android.content.Context;
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
-import android.hardware.Camera;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
-public class SignActivity extends AppCompatActivity {
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.common.util.concurrent.ListenableFuture;
 
-    private Camera mCamera;
-    private CameraPreview mPreview;
+import java.io.File;
+import java.util.concurrent.ExecutionException;
+
+@SuppressLint("RestrictedApi")
+public class SignActivity extends AppCompatActivity implements LifecycleOwner {
 
     ImageView backButton, flashButton, soundButton;
+    PreviewView previewView;
+    FloatingActionButton videoRecordButton;
+    LinearLayout progressBar;
+    TextView loadingText;
+
+    private ListenableFuture<ProcessCameraProvider> cameraProviderListenableFuture;
+    Camera camera;
+    VideoCapture videoCapture;
+
+    File file;
 
     boolean flash = false;
     boolean sound = true;
+    int MY_FILE_PERMISSION_CODE = 101;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,16 +63,22 @@ public class SignActivity extends AppCompatActivity {
         backButton = findViewById(R.id.objectBackButton2);
         flashButton = findViewById(R.id.flashButton2);
         soundButton = findViewById(R.id.soundButton2);
+        previewView = findViewById(R.id.previewView2);
+        videoRecordButton = findViewById(R.id.recordButton);
+        progressBar = findViewById(R.id.sign_progress);
+        loadingText = findViewById(R.id.loadingText);
 
-        if(checkCameraHardware(SignActivity.this)){
-            // Create an instance of Camera
-            mCamera = getCameraInstance();
+        file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), "Video.mp4");
 
-            // Create our Preview view and set it as the content of our activity.
-            mPreview = new CameraPreview(this, mCamera);
-            FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview2);
-            preview.addView(mPreview);
-        }
+        cameraProviderListenableFuture = ProcessCameraProvider.getInstance(this);
+        cameraProviderListenableFuture.addListener(() -> {
+            try {
+                ProcessCameraProvider cameraProvider = cameraProviderListenableFuture.get();
+                startCamera(cameraProvider);
+            } catch (ExecutionException | InterruptedException e){
+                Log.d("CameraError", e.toString());
+            }
+        }, ContextCompat.getMainExecutor(this));
 
         backButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -62,6 +98,7 @@ public class SignActivity extends AppCompatActivity {
                     flashButton.setImageResource(R.drawable.ic_baseline_flash_off_24);
                     flash = false;
                 }
+                camera.getCameraControl().enableTorch(flash);
             }
         });
 
@@ -71,37 +108,73 @@ public class SignActivity extends AppCompatActivity {
                 if(sound){
                     soundButton.setImageResource(R.drawable.ic_baseline_volume_off_24);
                     sound = false;
-                }else{
+                }else {
                     soundButton.setImageResource(R.drawable.ic_baseline_volume_up_24);
                     sound = true;
                 }
             }
         });
+
+        videoRecordButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                if (checkFilePermission()) {
+                    videoRecordButton.setVisibility(View.INVISIBLE);
+                    progressBar.setVisibility(View.VISIBLE);
+
+                    VideoCapture.OutputFileOptions outputFileOptions = new VideoCapture.OutputFileOptions.Builder(file).build();
+                    videoCapture.startRecording(outputFileOptions, ContextCompat.getMainExecutor(getApplicationContext()), new VideoCapture.OnVideoSavedCallback() {
+                        @Override
+                        public void onVideoSaved(@NonNull VideoCapture.OutputFileResults outputFileResults) {
+                            videoRecordButton.setVisibility(View.VISIBLE);
+                            progressBar.setVisibility(View.INVISIBLE);
+
+                        }
+
+                        @Override
+                        public void onError(int videoCaptureError, @NonNull String message, @Nullable Throwable cause) {
+                            videoRecordButton.setVisibility(View.VISIBLE);
+                            progressBar.setVisibility(View.INVISIBLE);
+                            Toast.makeText(getApplicationContext(), "Can't Capture", Toast.LENGTH_SHORT).show();
+                            Log.d("HEY NO", "Video File : " + cause);
+                        }
+                    });
+
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            videoCapture.stopRecording();
+                            Log.d("HEY Stopping", "Video File : Stopped");
+                        }
+                    }, 3000);
+                }
+            }
+        });
     }
-    private boolean checkCameraHardware(Context context) {
-        if (context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)){
-            // this device has a camera
+
+    private void startCamera(ProcessCameraProvider cameraProvider) {
+        Preview preview = new Preview.Builder().build();
+        CameraSelector cameraSelector = new CameraSelector.Builder()
+                .requireLensFacing(CameraSelector.LENS_FACING_BACK)
+                .build();
+
+        videoCapture = new VideoCapture.Builder()
+                .setTargetRotation(previewView.getDisplay().getRotation())
+                .setVideoFrameRate(24)
+                .build();
+
+        preview.setSurfaceProvider(previewView.getSurfaceProvider());
+
+        camera = cameraProvider.bindToLifecycle(this, cameraSelector, preview, videoCapture);
+    }
+
+    boolean checkFilePermission(){
+        if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(SignActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, MY_FILE_PERMISSION_CODE);
+        }else {
             return true;
-        } else {
-            // no camera on this device
-            return false;
         }
-    }
-
-    public static Camera getCameraInstance(){
-        Camera c = null;
-        try {
-            c = Camera.open(); // attempt to get a Camera instance
-            // set Camera parameters
-            Camera.Parameters params = c.getParameters();
-            params.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
-
-            c.setParameters(params);
-        }
-        catch (Exception e){
-            // Camera is not available (in use or does not exist)
-            Log.d("Camera", e.toString());
-        }
-        return c; // returns null if camera is unavailable
+        return false;
     }
 }
