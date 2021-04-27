@@ -42,20 +42,25 @@ import java.util.concurrent.ExecutionException;
 
 public class ObjectActivity extends AppCompatActivity {
 
-    private ObjectDetector objectDetector;
+    // Camerax object variables
     private ListenableFuture<ProcessCameraProvider> cameraProviderListenableFuture;
-
-    private LocalModel localModel;
-    private CustomObjectDetectorOptions customObjectDetectorOptions;
     private Camera camera;
 
+    // Model variables
+    private ObjectDetector objectDetector;
+    private LocalModel localModel;
+    private CustomObjectDetectorOptions customObjectDetectorOptions;
+
+    // Variable for view elements
     PreviewView previewView;
     ImageView backButton, flashButton, soundButton;
     TextView objectIdentified;
     RelativeLayout parentLayout;
 
+    // TextToSpeech variable
     TextToSpeech textToSpeech;
 
+    // Variables
     boolean flash = false;
     boolean sound = true;
     HashMap<String, Rect> objects;
@@ -65,10 +70,14 @@ public class ObjectActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_object);
 
+        // Setting full screen and hiding the action bar
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         getSupportActionBar().hide();
 
+        // Variable initialization
         cameraProviderListenableFuture = ProcessCameraProvider.getInstance(this);
+
+        // Camera listener
         cameraProviderListenableFuture.addListener(() -> {
             try {
                 ProcessCameraProvider cameraProvider = cameraProviderListenableFuture.get();
@@ -78,28 +87,28 @@ public class ObjectActivity extends AppCompatActivity {
             }
         }, ContextCompat.getMainExecutor(this));
 
+        // Load model from the assets directory
         localModel = new LocalModel.Builder()
                 .setAssetFilePath("object_detection.tflite")
                 .build();
 
+        // Model configuring
         customObjectDetectorOptions = new CustomObjectDetectorOptions.Builder(localModel)
                 .setDetectorMode(CustomObjectDetectorOptions.STREAM_MODE)
                 .enableMultipleObjects()
                 .enableClassification()
-                .setClassificationConfidenceThreshold(0.6f)
+                .setClassificationConfidenceThreshold(0.5f)
                 .build();
 
+        // Assigning the configured model
         objectDetector = ObjectDetection.getClient(customObjectDetectorOptions);
 
-        previewView = findViewById(R.id.previewView);
-        backButton = findViewById(R.id.objectBackButton);
-        flashButton = findViewById(R.id.flashButton);
-        objectIdentified = findViewById(R.id.objectsResult);
-        soundButton = findViewById(R.id.soundButton);
-        parentLayout = findViewById(R.id.parentLayout);
+        // Mapping the view elements to the variable
+        mapElementsToView();
 
         objects = new HashMap<>();
 
+        // Initializing the textToSpeech Variable
         textToSpeech = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
@@ -109,6 +118,7 @@ public class ObjectActivity extends AppCompatActivity {
             }
         });
 
+        // backButton onClick listener
         backButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -116,21 +126,23 @@ public class ObjectActivity extends AppCompatActivity {
             }
         });
 
+        // flashButton onClick listener
         flashButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(!flash) {
-                    flashButton.setImageResource(R.drawable.ic_baseline_flash_on_24);
-                    flash = true;
-                }
-                else {
+                if(flash) {
                     flashButton.setImageResource(R.drawable.ic_baseline_flash_off_24);
                     flash = false;
+                }
+                else {
+                    flashButton.setImageResource(R.drawable.ic_baseline_flash_on_24);
+                    flash = true;
                 }
                 camera.getCameraControl().enableTorch(flash);
             }
         });
 
+        // soundButton onClick listener
         soundButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -145,6 +157,17 @@ public class ObjectActivity extends AppCompatActivity {
         });
     }
 
+    // Mapping the view elements to the  variables
+    private void mapElementsToView() {
+        previewView = findViewById(R.id.previewView);
+        backButton = findViewById(R.id.objectBackButton);
+        flashButton = findViewById(R.id.flashButton);
+        objectIdentified = findViewById(R.id.objectsResult);
+        soundButton = findViewById(R.id.soundButton);
+        parentLayout = findViewById(R.id.parentLayout);
+    }
+
+    // Binding the view to the model and performing the analysis
     private void bindPreview(ProcessCameraProvider cameraProvider){
 
         Preview preview = new Preview.Builder().build();
@@ -170,13 +193,16 @@ public class ObjectActivity extends AppCompatActivity {
                 Image image1 = image.getImage();
 
                 if (image1 != null){
+                    // Input data to the model
                     InputImage processImage = InputImage.fromMediaImage(image1, rotationDegrees);
 
+                    // Running the prediction
                     objectDetector.process(processImage)
                             .addOnSuccessListener(new OnSuccessListener<List<DetectedObject>>() {
                                 @Override
                                 public void onSuccess(List<DetectedObject> detectedObjects) {
 
+                                    // Clearing the past outputs
                                     while (parentLayout.getChildCount() > 6){
                                         objectIdentified.setText("");
                                         parentLayout.removeViewAt(6);
@@ -185,22 +211,25 @@ public class ObjectActivity extends AppCompatActivity {
                                     if(detectedObjects.size() == 0)
                                         objects.clear();
 
+                                    // Looping through detected objects
                                     for (DetectedObject detectedObject: detectedObjects){
                                         try{
                                             String label = detectedObject.getLabels().get(0).getText();
                                             Rect rect = scaleBoundingBox(detectedObject.getBoundingBox(), image1);
+
+                                            // Showing the result
                                             objectIdentified.setText(objectIdentified.getText() + label + ", ");
 
+                                            // Running the speak function
                                             if (sound && !objects.containsKey(label)){
                                                 objects.put(label, rect);
                                                 textToSpeech.speak(label, TextToSpeech.QUEUE_ADD, null);
                                             }
 
+                                            // Plotting the bounding box
                                             DrawRectangle element = new DrawRectangle(getApplicationContext(), rect, label);
                                             parentLayout.addView(element);
-                                        }catch (Exception e){
-
-                                        }
+                                        }catch (Exception e){}
                                     }
 
                                     image.close();
@@ -219,6 +248,7 @@ public class ObjectActivity extends AppCompatActivity {
         camera = cameraProvider.bindToLifecycle((LifecycleOwner) this, cameraSelector, imageAnalysis, preview);
     }
 
+    // Scaling the bounding box to device dimension
     private Rect scaleBoundingBox(Rect rect, Image image){
         float scaleY = previewView.getHeight() / image.getHeight();
         float scaleX = previewView.getWidth() / image.getWidth();
