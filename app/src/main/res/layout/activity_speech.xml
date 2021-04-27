@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     tools:context=".SpeechActivity">
 
-
     <LinearLayout
         android:id="@+id/speech_progress"
         android:layout_width="match_parent"
@@ -61,6 +60,7 @@
         android:layout_marginTop="100dp"
         android:lineSpacingExtra="5dp"
         android:gravity="center" />
+
     <com.google.android.material.button.MaterialButton
         android:id="@+id/mic_button"
         android:layout_width="70dp"

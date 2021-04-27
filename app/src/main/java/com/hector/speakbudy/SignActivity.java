@@ -19,7 +19,9 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.speech.tts.TextToSpeech;
 import android.util.Log;
+import android.util.Size;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
@@ -34,6 +36,7 @@ import com.hector.speakbudy.API.RetrofitClient;
 import com.hector.speakbudy.DataModels.ResponseDataModel;
 
 import java.io.File;
+import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 
 import okhttp3.MediaType;
@@ -62,6 +65,8 @@ public class SignActivity extends AppCompatActivity implements LifecycleOwner {
     boolean sound = true;
     int MY_FILE_PERMISSION_CODE = 101;
 
+    TextToSpeech textToSpeech;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -78,6 +83,17 @@ public class SignActivity extends AppCompatActivity implements LifecycleOwner {
         progressBar = findViewById(R.id.sign_progress);
         loadingText = findViewById(R.id.loadingText);
         signResult = findViewById(R.id.signResult);
+
+
+        textToSpeech = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if(status != TextToSpeech.ERROR) {
+                    textToSpeech.setLanguage(Locale.UK);
+                }
+            }
+        });
+
 
         file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), "Video.mp4");
 
@@ -182,13 +198,19 @@ public class SignActivity extends AppCompatActivity implements LifecycleOwner {
         call.enqueue(new Callback<ResponseDataModel>() {
             @Override
             public void onResponse(Call<ResponseDataModel> call, Response<ResponseDataModel> response) {
-                signResult.setText(signResult.getText().toString() + " " + response.body().result);
+                signResult.setText(response.body().result + " " +  signResult.getText().toString());
+
+                if (sound) {
+                    textToSpeech.speak(response.body().result, TextToSpeech.QUEUE_ADD, null);
+                }
+                
                 videoRecordButton.setVisibility(View.VISIBLE);
                 progressBar.setVisibility(View.INVISIBLE);
             }
 
             @Override
             public void onFailure(Call<ResponseDataModel> call, Throwable t) {
+                Log.d("TAGGER", t.toString());
                 Toast.makeText(getApplicationContext(), "Check Your Connection!", Toast.LENGTH_SHORT).show();
                 videoRecordButton.setVisibility(View.VISIBLE);
                 progressBar.setVisibility(View.INVISIBLE);
@@ -204,7 +226,7 @@ public class SignActivity extends AppCompatActivity implements LifecycleOwner {
 
         videoCapture = new VideoCapture.Builder()
                 .setTargetRotation(previewView.getDisplay().getRotation())
-                .setVideoFrameRate(24)
+                .setVideoFrameRate(60)
                 .build();
 
         preview.setSurfaceProvider(previewView.getSurfaceProvider());

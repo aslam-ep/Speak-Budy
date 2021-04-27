@@ -68,9 +68,11 @@
         android:text=""
         android:textSize="20dp"
         android:fontFamily="@font/amaranth"
-        android:layout_margin="35dp"
+        android:layout_margin="20dp"
+        android:gravity="center"
         android:textColor="#FFF"
-        android:layout_alignParentBottom="true" />
+        android:layout_centerHorizontal="true"
+        android:layout_above="@+id/recordButton" />
     <ImageView
         android:id="@+id/soundButton2"
         android:src="@drawable/ic_baseline_volume_up_24"
@@ -81,13 +83,15 @@
         android:clickable="true"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"/>
+
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/recordButton"
         android:layout_width="200dp"
         android:layout_height="200dp"
-        android:layout_centerHorizontal="true"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="100dp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="30dp"
+        android:backgroundTint="@color/design_default_color_on_primary"
         android:src="@drawable/ic_baseline_videocam_24"
-        android:backgroundTint="@color/design_default_color_on_primary"/>
+        app:backgroundTint="@color/cardview_shadow_start_color" />
 </android.widget.RelativeLayout>
