@@ -131,11 +131,11 @@ public class ObjectActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if(flash) {
-                    flashButton.setImageResource(R.drawable.ic_baseline_flash_off_24);
+                    flashButton.setImageResource(R.drawable.flash_off);
                     flash = false;
                 }
                 else {
-                    flashButton.setImageResource(R.drawable.ic_baseline_flash_on_24);
+                    flashButton.setImageResource(R.drawable.flash_on);
                     flash = true;
                 }
                 camera.getCameraControl().enableTorch(flash);
@@ -147,10 +147,10 @@ public class ObjectActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if(sound){
-                    soundButton.setImageResource(R.drawable.ic_baseline_volume_off_24);
+                    soundButton.setImageResource(R.drawable.sound_off);
                     sound = false;
                 }else{
-                    soundButton.setImageResource(R.drawable.ic_baseline_volume_up_24);
+                    soundButton.setImageResource(R.drawable.sound_on);
                     sound = true;
                 }
             }

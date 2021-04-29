@@ -36,8 +36,7 @@ public class SpeechActivity extends AppCompatActivity {
     String textSaid;
 
     // View elements variable
-    ImageView backButton;
-    Button micButton;
+    ImageView backButton, micButton;
     TextView textToDisplay;
     LinearLayout progressBar;
 

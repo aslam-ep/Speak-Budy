@@ -21,15 +21,13 @@ import android.os.Environment;
 import android.os.Handler;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
-import android.util.Size;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.hector.speakbudy.API.RetrofitAPI;
 import com.hector.speakbudy.API.RetrofitClient;
@@ -49,9 +47,8 @@ import retrofit2.Response;
 @SuppressLint("RestrictedApi")
 public class SignActivity extends AppCompatActivity implements LifecycleOwner {
 
-    ImageView backButton, flashButton, soundButton;
+    ImageView backButton, flashButton, soundButton, videoRecordButton;
     PreviewView previewView;
-    FloatingActionButton videoRecordButton;
     LinearLayout progressBar;
     TextView loadingText, signResult;
 
@@ -64,6 +61,7 @@ public class SignActivity extends AppCompatActivity implements LifecycleOwner {
     boolean flash = false;
     boolean sound = true;
     int MY_FILE_PERMISSION_CODE = 101;
+    int WORD_COUNT = 0;
 
     TextToSpeech textToSpeech;
 
@@ -118,11 +116,11 @@ public class SignActivity extends AppCompatActivity implements LifecycleOwner {
             @Override
             public void onClick(View v) {
                 if(!flash) {
-                    flashButton.setImageResource(R.drawable.ic_baseline_flash_on_24);
+                    flashButton.setImageResource(R.drawable.flash_on);
                     flash = true;
                 }
                 else {
-                    flashButton.setImageResource(R.drawable.ic_baseline_flash_off_24);
+                    flashButton.setImageResource(R.drawable.flash_off);
                     flash = false;
                 }
                 camera.getCameraControl().enableTorch(flash);
@@ -133,10 +131,10 @@ public class SignActivity extends AppCompatActivity implements LifecycleOwner {
             @Override
             public void onClick(View v) {
                 if(sound){
-                    soundButton.setImageResource(R.drawable.ic_baseline_volume_off_24);
+                    soundButton.setImageResource(R.drawable.sound_off);
                     sound = false;
                 }else {
-                    soundButton.setImageResource(R.drawable.ic_baseline_volume_up_24);
+                    soundButton.setImageResource(R.drawable.sound_on);
                     sound = true;
                 }
             }
@@ -163,7 +161,7 @@ public class SignActivity extends AppCompatActivity implements LifecycleOwner {
                         public void onError(int videoCaptureError, @NonNull String message, @Nullable Throwable cause) {
                             videoRecordButton.setVisibility(View.VISIBLE);
                             progressBar.setVisibility(View.INVISIBLE);
-                            Toast.makeText(getApplicationContext(), "Can't Capture", Toast.LENGTH_SHORT).show();
+                            Snackbar.make(findViewById(android.R.id.content), "Can't Capture", Snackbar.LENGTH_SHORT).show();
                             Log.d("HEY NO", "Video File : " + cause);
                         }
                     });
@@ -198,7 +196,13 @@ public class SignActivity extends AppCompatActivity implements LifecycleOwner {
         call.enqueue(new Callback<ResponseDataModel>() {
             @Override
             public void onResponse(Call<ResponseDataModel> call, Response<ResponseDataModel> response) {
-                signResult.setText(response.body().result + " " +  signResult.getText().toString());
+                if (WORD_COUNT == 0){
+                    signResult.setText(response.body().result);
+                    WORD_COUNT++;
+                }else {
+                    signResult.setText(signResult.getText() + " " + response.body().result);
+                    WORD_COUNT = (WORD_COUNT + 1) % 20;
+                }
 
                 if (sound) {
                     textToSpeech.speak(response.body().result, TextToSpeech.QUEUE_ADD, null);
@@ -211,7 +215,7 @@ public class SignActivity extends AppCompatActivity implements LifecycleOwner {
             @Override
             public void onFailure(Call<ResponseDataModel> call, Throwable t) {
                 Log.d("TAGGER", t.toString());
-                Toast.makeText(getApplicationContext(), "Check Your Connection!", Toast.LENGTH_SHORT).show();
+                Snackbar.make(findViewById(android.R.id.content), "Check Your Connection!", Snackbar.LENGTH_SHORT).show();
                 videoRecordButton.setVisibility(View.VISIBLE);
                 progressBar.setVisibility(View.INVISIBLE);
             }

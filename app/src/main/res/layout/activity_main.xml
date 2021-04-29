@@ -20,7 +20,7 @@
 
     <ImageView
         android:id="@+id/sign"
-        android:src="@drawable/peace_sign"
+        android:src="@drawable/sign_language"
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:layout_centerInParent="true"
