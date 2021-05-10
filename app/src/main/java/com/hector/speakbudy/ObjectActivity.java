@@ -42,7 +42,7 @@ import java.util.concurrent.ExecutionException;
 
 public class ObjectActivity extends AppCompatActivity {
 
-    // Camerax object variables
+    // Camerax future listener variable
     private ListenableFuture<ProcessCameraProvider> cameraProviderListenableFuture;
     private Camera camera;
 
