@@ -103,7 +103,7 @@ public class SignActivity extends AppCompatActivity implements LifecycleOwner {
         file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), "Video.mp4");
 
         // CameraProvider continues listen variable initialize
-        cameraProviderListenableFuture = Prochttps://github.com/aslam-ep/SignLanguageessCameraProvider.getInstance(this);
+        cameraProviderListenableFuture = ProcessCameraProvider.getInstance(this);
 
         // Listener add
         cameraProviderListenableFuture.addListener(() -> {
