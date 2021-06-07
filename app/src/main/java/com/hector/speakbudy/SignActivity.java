@@ -47,22 +47,27 @@ import retrofit2.Response;
 @SuppressLint("RestrictedApi")
 public class SignActivity extends AppCompatActivity implements LifecycleOwner {
 
+    // Variables for view elements
     ImageView backButton, flashButton, soundButton, videoRecordButton;
     PreviewView previewView;
     LinearLayout progressBar;
     TextView loadingText, signResult;
 
+    // Camerax Variables
     private ListenableFuture<ProcessCameraProvider> cameraProviderListenableFuture;
     Camera camera;
     VideoCapture videoCapture;
 
+    // File variable for storing the captured video
     File file;
 
+    // Variables that needed
     boolean flash = false;
     boolean sound = true;
     int MY_FILE_PERMISSION_CODE = 101;
     int WORD_COUNT = 0;
 
+    // Text to speech convert - variable
     TextToSpeech textToSpeech;
 
     @Override
@@ -70,9 +75,11 @@ public class SignActivity extends AppCompatActivity implements LifecycleOwner {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign);
 
+        // Setting the screen as full screen
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         getSupportActionBar().hide();
 
+        // Connecting the variable and view elements using the id
         backButton = findViewById(R.id.objectBackButton2);
         flashButton = findViewById(R.id.flashButton2);
         soundButton = findViewById(R.id.soundButton2);
@@ -92,10 +99,13 @@ public class SignActivity extends AppCompatActivity implements LifecycleOwner {
             }
         });
 
-
+        // file variable initialize
         file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM), "Video.mp4");
 
-        cameraProviderListenableFuture = ProcessCameraProvider.getInstance(this);
+        // CameraProvider continues listen variable initialize
+        cameraProviderListenableFuture = Prochttps://github.com/aslam-ep/SignLanguageessCameraProvider.getInstance(this);
+
+        // Listener add
         cameraProviderListenableFuture.addListener(() -> {
             try {
                 ProcessCameraProvider cameraProvider = cameraProviderListenableFuture.get();
@@ -140,6 +150,7 @@ public class SignActivity extends AppCompatActivity implements LifecycleOwner {
             }
         });
 
+        // Capturing a 3 second video
         videoRecordButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -150,6 +161,7 @@ public class SignActivity extends AppCompatActivity implements LifecycleOwner {
                     progressBar.setVisibility(View.VISIBLE);
 
                     VideoCapture.OutputFileOptions outputFileOptions = new VideoCapture.OutputFileOptions.Builder(file).build();
+
                     videoCapture.startRecording(outputFileOptions, ContextCompat.getMainExecutor(getApplicationContext()), new VideoCapture.OnVideoSavedCallback() {
                         @Override
                         public void onVideoSaved(@NonNull VideoCapture.OutputFileResults outputFileResults) {
@@ -222,18 +234,20 @@ public class SignActivity extends AppCompatActivity implements LifecycleOwner {
         });
     }
 
+    // binding the view to the camera
     private void startCamera(ProcessCameraProvider cameraProvider) {
         Preview preview = new Preview.Builder().build();
+
         CameraSelector cameraSelector = new CameraSelector.Builder()
                 .requireLensFacing(CameraSelector.LENS_FACING_BACK)
                 .build();
+
+        preview.setSurfaceProvider(previewView.getSurfaceProvider());
 
         videoCapture = new VideoCapture.Builder()
                 .setTargetRotation(previewView.getDisplay().getRotation())
                 .setVideoFrameRate(60)
                 .build();
-
-        preview.setSurfaceProvider(previewView.getSurfaceProvider());
 
         camera = cameraProvider.bindToLifecycle(this, cameraSelector, preview, videoCapture);
     }
