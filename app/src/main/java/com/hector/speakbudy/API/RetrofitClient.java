@@ -9,7 +9,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RetrofitClient {
     private static Retrofit retrofitInstance;
-    private static String ipAddress = "http://192.168.1.7:5000/";
+    private static String ipAddress = "http://192.168.1.6:5000/";
 
     public static Retrofit getInstance(){
         OkHttpClient okHttpClient = new OkHttpClient.Builder()
